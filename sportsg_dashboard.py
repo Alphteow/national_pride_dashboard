@@ -9,6 +9,84 @@ import warnings
 warnings.filterwarnings('ignore')
 from datetime import datetime, timedelta
 import pandas as pd
+import joblib
+import numpy as np
+from transformers import AutoTokenizer, AutoModel
+import torch
+import re
+
+@st.cache_resource
+def load_trained_models():
+    """Load the trained SVM model and scaler from pkl folder"""
+    try:
+        # Load the trained models
+        svm_model = joblib.load('pkl/national_pride_svm.pkl')
+        scaler = joblib.load('pkl/embeddings_scaler.pkl')
+        
+        # Load the tokenizer and embedding model
+        tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+        embedding_model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+        
+        return svm_model, scaler, tokenizer, embedding_model
+    except Exception as e:
+        st.error(f"Error loading models: {e}")
+        return None, None, None, None
+
+def preprocess_text(text):
+    """Preprocess text for prediction (same as training)"""
+    if pd.isna(text) or not text:
+        return "no content"
+    text = str(text).strip()
+    if not text:
+        return "no content"
+    text = re.sub(r"http\S+|@\S+|#[\w]+", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text if text else "no content"
+
+def get_text_embedding(text, tokenizer, model):
+    """Get embedding for a single text"""
+    try:
+        # Preprocess the text
+        processed_text = preprocess_text(text)
+        
+        # Tokenize
+        inputs = tokenizer(processed_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
+        
+        # Get embedding
+        with torch.no_grad():
+            outputs = model(**inputs)
+            embedding = outputs.last_hidden_state[:, 0, :].numpy()
+        
+        return embedding
+    except Exception as e:
+        st.error(f"Error generating embedding: {e}")
+        return None
+
+def predict_national_pride(text, svm_model, scaler, tokenizer, embedding_model):
+    """Predict national pride score for input text"""
+    try:
+        # Get embedding
+        embedding = get_text_embedding(text, tokenizer, embedding_model)
+        if embedding is None:
+            return None
+        
+        # Scale the embedding
+        embedding_scaled = scaler.transform(embedding)
+        
+        # Predict
+        prediction = svm_model.predict(embedding_scaled)[0]
+        
+        # Get prediction probabilities if available
+        try:
+            probabilities = svm_model.predict_proba(embedding_scaled)[0]
+            confidence = max(probabilities)
+        except:
+            confidence = None
+        
+        return prediction, confidence
+    except Exception as e:
+        st.error(f"Error making prediction: {e}")
+        return None, None
 
 # Configure Streamlit page
 st.set_page_config(
@@ -942,6 +1020,160 @@ def create_content_insights(df):
             </div>
             """, unsafe_allow_html=True)
 
+def create_text_prediction_section():
+    """Create a section for users to input text and get national pride predictions"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #374151 0%, #1F2937 100%); 
+                padding: 2rem; 
+                border-radius: 1rem; 
+                margin: 3rem 0 2rem 0; 
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
+              AI-Powered National Pride Predictor
+        </h2>
+        <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
+            Enter any text about Singapore sports and get an instant national pride score
+        </p>
+        <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #10B981, #3B82F6); margin: 1rem auto 0 auto;"></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Load models
+    svm_model, scaler, tokenizer, embedding_model = load_trained_models()
+    
+    if svm_model is None:
+        st.error("  Could not load trained models. Please ensure the pkl files are in the 'pkl' folder.")
+        return
+    
+    st.success("  AI Models loaded successfully!")
+    
+    # Create input section
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("###   Enter Your Text")
+        
+        # Text input
+        user_text = st.text_area(
+            "Type or paste your text about Singapore sports:",
+            placeholder="Example: Joseph Schooling won gold at the Olympics! So proud of our Singapore swimmer. Amazing achievement that inspires all of us!",
+            height=150,
+            help="Enter any text related to Singapore sports, athletes, or sporting events"
+        )
+        
+        # Predict button
+        if st.button("  Predict National Pride Score", type="primary"):
+            if user_text.strip():
+                with st.spinner("  Analyzing text..."):
+                    prediction, confidence = predict_national_pride(
+                        user_text, svm_model, scaler, tokenizer, embedding_model
+                    )
+                    
+                    if prediction is not None:
+                        # Store prediction in session state for display
+                        st.session_state.prediction = prediction
+                        st.session_state.confidence = confidence
+                        st.session_state.user_text = user_text
+                        st.rerun()
+            else:
+                st.warning("  Please enter some text to analyze.")
+    
+    with col2:
+        st.markdown("###   Prediction Result")
+        
+        # Display prediction if available
+        if hasattr(st.session_state, 'prediction') and st.session_state.prediction is not None:
+            prediction = st.session_state.prediction
+            confidence = st.session_state.confidence
+            
+            # Pride level descriptions
+            pride_descriptions = {
+                0: {"label": "No Pride", "color": "#EF4444", "emoji": "😐"},
+                1: {"label": "Low Pride", "color": "#F59E0B", "emoji": "🙂"},
+                2: {"label": "Moderate Pride", "color": "#10B981", "emoji": "😊"},
+                3: {"label": "High Pride", "color": "#3B82F6", "emoji": "🤩"}
+            }
+            
+            pride_info = pride_descriptions.get(prediction, {"label": "Unknown", "color": "#6B7280", "emoji": "❓"})
+            
+            # Display result card
+            st.markdown(f"""
+            <div style="background: {pride_info['color']}; 
+                        padding: 2rem; 
+                        border-radius: 1rem; 
+                        text-align: center; 
+                        color: white;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">{pride_info['emoji']}</div>
+                <h3 style="margin-bottom: 0.5rem; color: white;">Score: {prediction}/3</h3>
+                <h4 style="margin-bottom: 1rem; color: white;">{pride_info['label']}</h4>
+                {f'<p style="color: rgba(255,255,255,0.8);">Confidence: {confidence:.1%}</p>' if confidence else ''}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Show analysis
+            st.markdown("###   Analysis")
+            
+            analysis_text = {
+                0: "This text shows neutral sentiment with no clear expressions of national pride or sporting achievement celebration.",
+                1: "This text shows mild positive sentiment but limited expressions of national pride or sporting celebration.",
+                2: "This text demonstrates moderate national pride with clear positive sentiment towards Singapore's sporting achievements.",
+                3: "This text exhibits high national pride with strong positive sentiment and celebration of Singapore's sporting excellence."
+            }
+            
+            st.info(analysis_text.get(prediction, "Analysis not available."))
+            
+            # Show inspirational keywords if found
+            inspirational_keywords = [
+                'inspired', 'inspiring', 'motivation', 'motivated', 'good job', 'well done', 
+                'excellent', 'amazing', 'fantastic', 'proud', 'pride', 'congratulations',
+                'outstanding', 'incredible', 'awesome', 'brilliant', 'champion'
+            ]
+            
+            found_keywords = []
+            text_lower = st.session_state.user_text.lower()
+            for keyword in inspirational_keywords:
+                if keyword in text_lower:
+                    found_keywords.append(keyword)
+            
+            if found_keywords:
+                st.success(f"  **Inspirational keywords found:** {', '.join(found_keywords[:5])}")
+        
+        else:
+            # Default display
+            st.markdown("""
+            <div style="background: #374151; 
+                        padding: 2rem; 
+                        border-radius: 1rem; 
+                        text-align: center; 
+                        color: #9CA3AF;
+                        border: 2px dashed #6B7280;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;"> </div>
+                <p>Enter text and click predict to see the national pride score</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Example texts
+        st.markdown("###   Try These Examples")
+        
+        examples = [
+            "Joseph Schooling won gold! So proud of Singapore!",
+            "Great badminton match today.",
+            "Singapore athletes are amazing and inspire us all!",
+            "The team lost the game."
+        ]
+        
+        for i, example in enumerate(examples):
+            if st.button(f"  Example {i+1}", key=f"example_{i}"):
+                st.session_state.example_text = example
+                st.rerun()
+        
+        # Load example text if selected
+        if hasattr(st.session_state, 'example_text'):
+            st.text_area("Selected example:", value=st.session_state.example_text, key="example_display", height=100)
+
+
 def main():
     # Load data
     df = load_data()
@@ -960,10 +1192,10 @@ def main():
                     text-align: center;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
-                  Analytics Dashboard
+                  Comprehensive Analytics Dashboard
             </h2>
             <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
-                Insights and visualizations based on complete dataset analysis
+                Detailed insights and visualizations based on complete dataset analysis
             </p>
             <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #10B981, #3B82F6); margin: 1rem auto 0 auto;"></div>
         </div>
@@ -975,14 +1207,17 @@ def main():
         create_text_examples_section(df)
         create_content_insights(df)
         create_advanced_analytics(df)
+        create_actionable_insights(df)
+        
+        # ADD THE NEW TEXT PREDICTION SECTION
+        create_text_prediction_section()
         
         # Footer
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; margin-top: 2rem;">
-            <h4>   National Pride Analytics Dashboard - Built by Alphonsus Teow</h4>
+            <h4>🏆 National Pride Analytics Dashboard - Built by Alphonsus Teow</h4>
             <p>Empowering Singapore's sporting journey through data-driven insights</p>
-            <p><em>Data Science Capstone Project | Built with ❤
             <p><em>Data Science Capstone Project | Built with ❤️ for Singapore Sports</em></p>
         </div>
         """, unsafe_allow_html=True)
