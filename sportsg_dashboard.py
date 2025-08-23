@@ -343,7 +343,7 @@ def create_storytelling_insights(df):
         
         keyword_counts = {}
         for keyword in inspirational_keywords:
-            count = past_month_df['main emotion'].fillna('').str.contains(
+            count = past_month_df['title'].fillna('').str.contains(
                 f'\\b{keyword}\\b', case=False, regex=True, na=False
             ).sum()
             if count > 0:
@@ -354,7 +354,7 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>  Top Emotion</h4>
+                    <h4>  Top Topic</h4>
                     <p><strong>"{top_topic[0]}"</strong></p>
                     <p>{top_topic[1]:,} mentions</p>
                     <p>Past 30 days</p>
@@ -391,7 +391,7 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>🚀 Top Engagement</h4>
+                    <h4>  Top Engagement</h4>
                     <p><strong>{platform}</strong></p>
                     <p>{total_eng:,} interactions</p>
                     <p>{post_date} | Pride: {pride_score}/3</p>
