@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="SportSG National Pride Analytics - Enhanced Dashboard",
+    page_title="National Pride Analytics",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -183,7 +183,7 @@ def create_hero_section(df):
     """Create an engaging hero section with key highlights"""
     st.markdown("""
     <div class="hero-section">
-        <h1>🏆 SportSG National Pride Analytics Dashboard</h1>
+        <h1>National Pride Analytics Dashboard</h1>
         <h3>Tracking Singapore's Sporting Journey & National Pride</h3>
         <p>Discover the stories behind the data that showcase Singapore's sporting achievements and community spirit</p>
     </div>
@@ -231,7 +231,7 @@ def create_hero_section(df):
 
 def create_storytelling_insights(df):
     """Create storytelling insights section with equal-height cards"""
-    st.markdown('<div class="section-header">📖 Story Behind the Data</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Story Behind the Data</div>', unsafe_allow_html=True)
     
     # Add inspirational content analysis
     df = find_inspirational_posts(df)
@@ -242,8 +242,8 @@ def create_storytelling_insights(df):
         st.markdown("""
         <div class="story-card">
             <div>
-                <h4>🌟 Singapore's Sporting Spirit</h4>
-                <p>Our analysis reveals that Singaporeans show tremendous pride in their athletes and sporting achievements. From grassroots community events to international competitions, every victory is celebrated as a national triumph.</p>
+                <h4>Singapore's Sporting Spirit</h4>
+                <p>Here is a breakdown of the general consensus of national pride in the sporting ecosystem.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -274,7 +274,7 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="milestone-card">
                 <div>
-                    <h4>🏅 Peak Inspirational Pride Moment</h4>
+                    <h4>Peak Inspirational Pride Moment</h4>
                     <p><strong>Date:</strong> {peak_post['date'].strftime('%B %d, %Y')}</p>
                     <p><strong>Platform:</strong> {peak_post['source']}</p>
                     <p><strong>Keywords:</strong> {', '.join(found_keywords[:3]) if found_keywords else 'Inspirational content'}</p>
@@ -288,7 +288,7 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="milestone-card">
                 <div>
-                    <h4>🏅 Peak Pride Moment</h4>
+                    <h4>Peak Pride Moment</h4>
                     <p><strong>Date:</strong> {high_pride_sample['date'].strftime('%B %d, %Y')}</p>
                     <p><strong>Platform:</strong> {high_pride_sample['source']}</p>
                 </div>
@@ -306,7 +306,7 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="insight-box">
                 <div>
-                    <h4>🏆 Most Celebrated Sport</h4>
+                    <h4>Most Celebrated Sport</h4>
                     <p><strong>{top_sport[0]}</strong> dominates conversations with <strong>{top_sport[1]:,}</strong> mentions, showing Singapore's passion for this sport across all platforms.</p>
                 </div>
             </div>
@@ -317,7 +317,7 @@ def create_storytelling_insights(df):
         st.markdown(f"""
         <div class="story-card">
             <div>
-                <h4>📈 Community Engagement</h4>
+                <h4>Community Engagement</h4>
                 <p>With an average national pride score of <strong>{avg_pride:.2f}</strong>, Singaporeans consistently show positive sentiment towards sports content, reflecting a strong sporting culture.</p>
             </div>
         </div>
@@ -329,7 +329,7 @@ def create_enhanced_visualizations(df):
     """Create enhanced visualizations with better storytelling"""
     
     # Sports Performance Heatmap
-    st.markdown('<div class="section-header">🔥 Sports Engagement Heatmap</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Sports Engagement Heatmap</div>', unsafe_allow_html=True)
     
     # Create sports-platform matrix
     df_sports_exploded = df.explode('sports_list')
@@ -359,7 +359,7 @@ def create_enhanced_visualizations(df):
         st.plotly_chart(fig_heatmap, use_container_width=True)
     
     # Pride Journey Over Time
-    st.markdown('<div class="section-header">📊 National Pride Journey</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">National Pride Journey</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -452,10 +452,10 @@ def create_advanced_analytics(df):
     st.markdown('<div class="section-header">🔍 Advanced Analytics</div>', unsafe_allow_html=True)
     
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🎯 Engagement Patterns", 
-        "🌐 Platform Insights", 
-        "📅 Temporal Analysis",
-        "🔗 Network Analysis"
+        "Engagement Patterns", 
+        "Platform Insights", 
+        "Temporal Analysis",
+        "Network Analysis"
     ])
     
     with tab1:
@@ -549,7 +549,7 @@ def create_advanced_analytics(df):
         # Network analysis
         st.markdown("""
         <div class="insight-box">
-            <h4>🔗 Sports-Athletes Network</h4>
+            <h4>Sports-Athletes Network</h4>
             <p>This section shows the interconnections between sports and athletes mentioned together in posts, 
             revealing the ecosystem of Singapore's sporting community.</p>
         </div>
@@ -584,7 +584,7 @@ def create_advanced_analytics(df):
 
 def create_actionable_insights(df):
     """Create actionable insights section with equal-height cards"""
-    st.markdown('<div class="section-header">💡 Actionable Insights & Recommendations</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Actionable Insights & Recommendations</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
@@ -592,7 +592,7 @@ def create_actionable_insights(df):
         st.markdown("""
         <div class="story-card">
             <div>
-                <h4>🎯 Content Strategy</h4>
+                <h4>Content Strategy</h4>
                 <p><strong>Recommendation:</strong> Focus on high-engagement sports and athletes that consistently generate national pride.</p>
                 <p><strong>Impact:</strong> Increase community engagement by 25-30%</p>
             </div>
@@ -603,7 +603,7 @@ def create_actionable_insights(df):
         st.markdown("""
         <div class="story-card">
             <div>
-                <h4>📱 Platform Optimization</h4>
+                <h4>Platform Optimization</h4>
                 <p><strong>Recommendation:</strong> Leverage platforms with highest pride scores for important announcements.</p>
                 <p><strong>Impact:</strong> Maximize reach and positive sentiment</p>
             </div>
@@ -614,7 +614,7 @@ def create_actionable_insights(df):
         st.markdown("""
         <div class="story-card">
             <div>
-                <h4>⏰ Timing Strategy</h4>
+                <h4>Timing Strategy</h4>
                 <p><strong>Recommendation:</strong> Schedule posts during peak engagement hours and high-pride days.</p>
                 <p><strong>Impact:</strong> Improve visibility and community response</p>
             </div>
@@ -623,7 +623,7 @@ def create_actionable_insights(df):
 
 def create_text_examples_section(df):
     """Create a section showing examples of extracted text by national pride level"""
-    st.markdown('<div class="section-header">📝 Text Examples by National Pride Level</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Text Examples by National Pride Level</div>', unsafe_allow_html=True)
     
     # Add inspirational content analysis
     df = find_inspirational_posts(df)
@@ -685,11 +685,8 @@ def create_text_examples_section(df):
                     sample_posts = level_data.sample(n=sample_size, random_state=42)
                 
                 for idx, (_, row) in enumerate(sample_posts.iterrows(), 1):
-                    # Add indicator if post is inspirational
-                    title_suffix = " ⭐ (Inspirational)" if row['has_inspirational_content'] else ""
-                    
                     # Create expandable sections for each example
-                    with st.expander(f"Example {idx} - {row['source']} ({row['date'].strftime('%Y-%m-%d')}){title_suffix}"):
+                    with st.expander(f"Example {idx} - {row['source']} ({row['date'].strftime('%Y-%m-%d')})"):
                         
                         # Display post metadata
                         col1, col2 = st.columns(2)
@@ -762,7 +759,7 @@ def create_text_examples_section(df):
 
 def create_content_insights(df):
     """Create insights about the content characteristics"""
-    st.markdown('<div class="section-header">🔍 Content Analysis Insights</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Content Analysis Insights</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -782,7 +779,7 @@ def create_content_insights(df):
         # Key insights
         st.markdown("""
         <div class="insight-box">
-            <h4>📊 Content Length Insights</h4>
+            <h4>Content Length Insights</h4>
             <p>Higher pride posts tend to have more detailed content, suggesting that meaningful sporting achievements generate more comprehensive discussions.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -830,14 +827,14 @@ def create_content_insights(df):
             high_pride_platform = df[df['national_pride_pred'] >= 2]['source'].value_counts().index[0]
             st.markdown(f"""
             <div class="insight-box">
-                <h4>📱 Platform Insights</h4>
+                <h4>Platform Insights</h4>
                 <p><strong>{high_pride_platform}</strong> generates the most high-pride content, making it a key platform for celebrating Singapore's sporting achievements.</p>
             </div>
             """, unsafe_allow_html=True)
         except IndexError:
             st.markdown("""
             <div class="insight-box">
-                <h4>📱 Platform Insights</h4>
+                <h4>Platform Insights</h4>
                 <p>Platform analysis is being processed. Please check your data for high-pride posts.</p>
             </div>
             """, unsafe_allow_html=True)
@@ -864,7 +861,7 @@ def main():
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; margin-top: 2rem;">
-            <h4>🏆 SportSG National Pride Analytics Dashboard - Enhanced Edition</h4>
+            <h4>   National Pride Analytics Dashboard - Enhanced Edition</h4>
             <p>Empowering Singapore's sporting journey through data-driven insights</p>
             <p><em>Data Science Capstone Project | Built with ❤
             <p><em>Data Science Capstone Project | Built with ❤️ for Singapore Sports</em></p>
