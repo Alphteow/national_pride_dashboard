@@ -1031,7 +1031,7 @@ def create_text_prediction_section():
                 text-align: center;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
-            🤖 AI-Powered National Pride Predictor
+              AI-Powered National Pride Predictor
         </h2>
         <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
             Enter any text about Singapore sports and get an instant national pride score
@@ -1044,16 +1044,16 @@ def create_text_prediction_section():
     svm_model, scaler, tokenizer, embedding_model = load_trained_models()
     
     if svm_model is None:
-        st.error("❌ Could not load trained models. Please ensure the pkl files are in the 'pkl' folder.")
+        st.error("  Could not load trained models. Please ensure the pkl files are in the 'pkl' folder.")
         return
     
-    st.success("✅ AI Models loaded successfully!")
+    st.success("  AI Models loaded successfully!")
     
     # Create input section
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("### 📝 Enter Your Text")
+        st.markdown("###   Enter Your Text")
         
         # Text input
         user_text = st.text_area(
@@ -1064,9 +1064,9 @@ def create_text_prediction_section():
         )
         
         # Predict button
-        if st.button("🔮 Predict National Pride Score", type="primary"):
+        if st.button("  Predict National Pride Score", type="primary"):
             if user_text.strip():
-                with st.spinner("🤖 Analyzing text..."):
+                with st.spinner("  Analyzing text..."):
                     prediction, confidence = predict_national_pride(
                         user_text, svm_model, scaler, tokenizer, embedding_model
                     )
@@ -1078,10 +1078,10 @@ def create_text_prediction_section():
                         st.session_state.user_text = user_text
                         st.rerun()
             else:
-                st.warning("⚠️ Please enter some text to analyze.")
+                st.warning("  Please enter some text to analyze.")
     
     with col2:
-        st.markdown("### 📊 Prediction Result")
+        st.markdown("###   Prediction Result")
         
         # SCROLLABLE RESULT SECTION WITH BETTER HEIGHT MANAGEMENT
         result_container = st.container()
@@ -1118,7 +1118,7 @@ def create_text_prediction_section():
                 """, unsafe_allow_html=True)
                 
                 # Show analysis
-                st.markdown("#### 🔍 Analysis")
+                st.markdown("####   Analysis")
                 
                 analysis_text = {
                     0: "This text shows neutral sentiment with no clear expressions of national pride or sporting achievement celebration.",
@@ -1143,7 +1143,7 @@ def create_text_prediction_section():
                         found_keywords.append(keyword)
                 
                 if found_keywords:
-                    st.success(f"🌟 **Inspirational keywords found:** {', '.join(found_keywords[:5])}")
+                    st.success(f"  **Inspirational keywords found:** {', '.join(found_keywords[:5])}")
             
             else:
                 # Default display
@@ -1161,7 +1161,7 @@ def create_text_prediction_section():
     
     # SEPARATE EXAMPLES SECTION WITH PROPER SPACING
     st.markdown("---")  # Add separator
-    st.markdown("### 💡 Try These Examples")
+    st.markdown("###   Try These Examples")
     
     # Create a container with proper height and scrolling
     examples_container = st.container()
@@ -1181,19 +1181,9 @@ def create_text_prediction_section():
                 "expected_score": "1-2/3"
             },
             {
-                "text": "Singapore athletes are amazing and inspire us all! Their dedication and hard work paid off with this incredible victory!",
-                "description": "Very high pride with inspirational language",
-                "expected_score": "3/3"
-            },
-            {
                 "text": "The team lost the game.",
                 "description": "Low pride example",
                 "expected_score": "0-1/3"
-            },
-            {
-                "text": "Congratulations to our swimmers! Outstanding performance at the SEA Games. Well done team Singapore!",
-                "description": "High pride with congratulatory tone",
-                "expected_score": "3/3"
             },
             {
                 "text": "Training session was okay.",
@@ -1208,7 +1198,7 @@ def create_text_prediction_section():
             
             with col:
                 # Create expandable example cards
-                with st.expander(f"📝 Example {i+1}: {example['expected_score']}", expanded=False):
+                with st.expander(f"  Example {i+1}: {example['expected_score']}", expanded=False):
                     st.markdown(f"**Text:** _{example['text']}_")
                     st.markdown(f"**Description:** {example['description']}")
                     st.markdown(f"**Expected Score:** {example['expected_score']}")
@@ -1220,7 +1210,7 @@ def create_text_prediction_section():
         
         # Show selected example text area
         if hasattr(st.session_state, 'selected_example'):
-            st.markdown("#### 📋 Selected Example")
+            st.markdown("####   Selected Example")
             selected_text = st.text_area(
                 "You can edit this example before predicting:",
                 value=st.session_state.selected_example,
@@ -1229,9 +1219,9 @@ def create_text_prediction_section():
             )
             
             # Quick predict button for selected example
-            if st.button("🚀 Predict Selected Example", type="secondary"):
+            if st.button("  Predict Selected Example", type="secondary"):
                 if selected_text.strip():
-                    with st.spinner("🤖 Analyzing selected example..."):
+                    with st.spinner("  Analyzing selected example..."):
                         prediction, confidence = predict_national_pride(
                             selected_text, svm_model, scaler, tokenizer, embedding_model
                         )
