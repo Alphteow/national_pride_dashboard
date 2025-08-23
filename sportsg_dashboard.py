@@ -253,7 +253,7 @@ def create_hero_section(df):
 
 def create_storytelling_insights(df):
     """Create storytelling insights section with 4 pride comparison cards - Past Month Data"""
-    st.markdown('<div class="section-header">  Pride Performance of the past 30 Days</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">  Pride Performance overview of the past 30 Days</div>', unsafe_allow_html=True)
     
     # Filter to past month data
     past_month_df = filter_past_month(df)
@@ -950,13 +950,30 @@ def main():
         # Create enhanced dashboard sections
         create_hero_section(df)
         create_storytelling_insights(df)
+        
+        # SECTION DIVIDER - Overall Statistics Begin
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #374151 0%, #1F2937 100%); 
+                    padding: 2rem; 
+                    border-radius: 1rem; 
+                    margin: 3rem 0 2rem 0; 
+                    text-align: center;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
+                  Analytics Dashboard
+            </h2>
+            <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
+                Detailed insights and visualizations based on complete dataset analysis
+            </p>
+            <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #10B981, #3B82F6); margin: 1rem auto 0 auto;"></div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Continue with overall statistics sections
         create_enhanced_visualizations(df)
         create_athlete_spotlight(df)
-        
-        # Add the new text examples section
         create_text_examples_section(df)
         create_content_insights(df)
-        
         create_advanced_analytics(df)
         create_actionable_insights(df)
         
