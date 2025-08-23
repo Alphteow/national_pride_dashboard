@@ -271,26 +271,17 @@ def create_storytelling_insights(df):
                 if keyword in content_lower:
                     found_keywords.append(keyword)
             
+            # Get a preview of the content (first 100 characters)
+            content_preview = peak_post['content'][:100] + "..." if len(str(peak_post['content'])) > 100 else peak_post['content']
+            
             st.markdown(f"""
             <div class="milestone-card">
                 <div>
-                    <h4>Peak Inspirational Pride Moment</h4>
+                    <h4>  Peak Inspirational Pride Moment</h4>
                     <p><strong>Date:</strong> {peak_post['date'].strftime('%B %d, %Y')}</p>
                     <p><strong>Platform:</strong> {peak_post['source']}</p>
                     <p><strong>Keywords:</strong> {', '.join(found_keywords[:3]) if found_keywords else 'Inspirational content'}</p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        elif df['national_pride_pred'].max() >= 3:
-            # Fallback to regular peak pride moment
-            high_pride_sample = df[df['national_pride_pred'] == df['national_pride_pred'].max()].iloc[0]
-            st.markdown(f"""
-            <div class="milestone-card">
-                <div>
-                    <h4>Peak Pride Moment</h4>
-                    <p><strong>Date:</strong> {high_pride_sample['date'].strftime('%B %d, %Y')}</p>
-                    <p><strong>Platform:</strong> {high_pride_sample['source']}</p>
+                    <p><strong>Quote:</strong> <em>"{content_preview}"</em></p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -405,7 +396,7 @@ def create_enhanced_visualizations(df):
 
 def create_athlete_spotlight(df):
     """Create athlete spotlight section"""
-    st.markdown('<div class="section-header">⭐ Athlete Spotlight</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Athlete Spotlight</div>', unsafe_allow_html=True)
     
     # Get top athletes
     all_athletes = []
@@ -441,7 +432,7 @@ def create_athlete_spotlight(df):
                 
                 st.markdown(f"""
                 <div class="insight-box">
-                    <h4>🏅 {athlete}</h4>
+                    <h4>  {athlete}</h4>
                     <p><strong>{count}</strong> mentions</p>
                     <p>Avg Pride: <strong>{avg_pride:.2f}</strong></p>
                 </div>
@@ -449,7 +440,7 @@ def create_athlete_spotlight(df):
 
 def create_advanced_analytics(df):
     """Create advanced analytics section"""
-    st.markdown('<div class="section-header">🔍 Advanced Analytics</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">  Advanced Analytics</div>', unsafe_allow_html=True)
     
     tab1, tab2, tab3, tab4 = st.tabs([
         "Engagement Patterns", 
@@ -861,7 +852,7 @@ def main():
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #666; margin-top: 2rem;">
-            <h4>   National Pride Analytics Dashboard - Enhanced Edition</h4>
+            <h4>   National Pride Analytics Dashboard - Built by Alphonsus Teow</h4>
             <p>Empowering Singapore's sporting journey through data-driven insights</p>
             <p><em>Data Science Capstone Project | Built with ❤
             <p><em>Data Science Capstone Project | Built with ❤️ for Singapore Sports</em></p>
