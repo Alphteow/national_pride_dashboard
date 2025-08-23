@@ -230,64 +230,17 @@ def create_hero_section(df):
         """, unsafe_allow_html=True)
 
 def create_storytelling_insights(df):
-    """Create storytelling insights section with equal-height cards"""
-    st.markdown('<div class="section-header">Story Behind the Data</div>', unsafe_allow_html=True)
+    """Create storytelling insights section with 4 key metrics cards"""
+    st.markdown('<div class="section-header">  Story Behind the Data</div>', unsafe_allow_html=True)
     
     # Add inspirational content analysis
     df = find_inspirational_posts(df)
     
-    col1, col2 = st.columns(2)
+    # Create 4 columns for the new cards
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("""
-        <div class="story-card">
-            <div>
-                <h4>Singapore's Sporting Spirit</h4>
-                <p>Here is a breakdown of the general consensus of national pride in the sporting ecosystem.</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Peak pride moment - prioritize inspirational content
-        high_pride_posts = df[df['national_pride_pred'] == df['national_pride_pred'].max()]
-        
-        # First try to find inspirational posts among the highest pride posts
-        inspirational_high_pride = high_pride_posts[high_pride_posts['has_inspirational_content'] == True]
-        
-        if len(inspirational_high_pride) > 0:
-            # Use inspirational post
-            peak_post = inspirational_high_pride.iloc[0]
-            
-            # Extract found inspirational keywords
-            inspirational_keywords = [
-                'inspired', 'inspiring', 'motivation', 'motivated', 'good job', 'well done', 
-                'excellent', 'amazing', 'fantastic', 'proud', 'pride', 'congratulations',
-                'outstanding', 'incredible', 'awesome', 'brilliant', 'champion'
-            ]
-            
-            found_keywords = []
-            content_lower = str(peak_post['content']).lower()
-            for keyword in inspirational_keywords:
-                if keyword in content_lower:
-                    found_keywords.append(keyword)
-            
-            # Get a preview of the content (first 100 characters)
-            content_preview = peak_post['content'][:100] + "..." if len(str(peak_post['content'])) > 100 else peak_post['content']
-            
-            st.markdown(f"""
-            <div class="milestone-card">
-                <div>
-                    <h4>  Peak Inspirational Pride Moment</h4>
-                    <p><strong>Date:</strong> {peak_post['date'].strftime('%B %d, %Y')}</p>
-                    <p><strong>Platform:</strong> {peak_post['source']}</p>
-                    <p><strong>Keywords:</strong> {', '.join(found_keywords[:3]) if found_keywords else 'Inspirational content'}</p>
-                    <p><strong>Quote:</strong> <em>"{content_preview}"</em></p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    with col2:
-        # Most engaging sports story
+        # TOP SPORT CARD
         all_sports = []
         for sports_list in df['sports_list']:
             all_sports.extend(sports_list)
@@ -295,24 +248,139 @@ def create_storytelling_insights(df):
         if all_sports:
             top_sport = Counter(all_sports).most_common(1)[0]
             st.markdown(f"""
-            <div class="insight-box">
+            <div class="story-card">
                 <div>
-                    <h4>Most Celebrated Sport</h4>
-                    <p><strong>{top_sport[0]}</strong> dominates conversations with <strong>{top_sport[1]:,}</strong> mentions, showing Singapore's passion for this sport across all platforms.</p>
+                    <h4>🏆 Top Sport</h4>
+                    <p><strong>{top_sport[0]}</strong></p>
+                    <p>{top_sport[1]:,} mentions</p>
+                    <p>Most discussed sport</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        
-        # Community engagement
-        avg_pride = df['national_pride_pred'].mean()
-        st.markdown(f"""
-        <div class="story-card">
-            <div>
-                <h4>Community Engagement</h4>
-                <p>With an average national pride score of <strong>{avg_pride:.2f}</strong>, Singaporeans consistently show positive sentiment towards sports content, reflecting a strong sporting culture.</p>
+        else:
+            st.markdown("""
+            <div class="story-card">
+                <div>
+                    <h4>🏆 Top Sport</h4>
+                    <p><strong>No data</strong></p>
+                    <p>0 mentions</p>
+                    <p>Most discussed sport</p>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        # TOP ATHLETE CARD
+        all_athletes = []
+        for athletes_list in df['athletes_list']:
+            all_athletes.extend(athletes_list)
+        
+        if all_athletes:
+            top_athlete = Counter(all_athletes).most_common(1)[0]
+            # Get average pride for this athlete
+            athlete_posts = df[df['athletes_list'].apply(lambda x: top_athlete[0] in x)]
+            avg_pride = athlete_posts['national_pride_pred'].mean() if len(athlete_posts) > 0 else 0
+            
+            st.markdown(f"""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Athlete</h4>
+                    <p><strong>{top_athlete[0]}</strong></p>
+                    <p>{top_athlete[1]:,} mentions</p>
+                    <p>Avg Pride: {avg_pride:.1f}/3</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Athlete</h4>
+                    <p><strong>No data</strong></p>
+                    <p>0 mentions</p>
+                    <p>Most mentioned athlete</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col3:
+        # TOP TOPIC CARD (based on inspirational keywords)
+        inspirational_keywords = [
+            'inspired', 'inspiring', 'motivation', 'motivated', 'good job', 'well done', 
+            'excellent', 'amazing', 'fantastic', 'proud', 'pride', 'congratulations',
+            'outstanding', 'incredible', 'awesome', 'brilliant', 'champion', 'victory',
+            'achievement', 'success', 'dedication', 'perseverance'
+        ]
+        
+        keyword_counts = {}
+        for keyword in inspirational_keywords:
+            count = df['content'].fillna('').str.contains(
+                f'\\b{keyword}\\b', case=False, regex=True, na=False
+            ).sum()
+            if count > 0:
+                keyword_counts[keyword] = count
+        
+        if keyword_counts:
+            top_topic = max(keyword_counts.items(), key=lambda x: x[1])
+            st.markdown(f"""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Topic</h4>
+                    <p><strong>"{top_topic[0]}"</strong></p>
+                    <p>{top_topic[1]:,} mentions</p>
+                    <p>Most used keyword</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Topic</h4>
+                    <p><strong>"pride"</strong></p>
+                    <p>Popular topic</p>
+                    <p>Most discussed theme</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col4:
+        # TOP ENGAGEMENT CARD
+        engagement_cols = ['no. of likes', 'no. of comments', 'no. of shares', 'no. of views']
+        available_engagement = [col for col in engagement_cols if col in df.columns and df[col].notna().sum() > 0]
+        
+        if available_engagement:
+            df['total_engagement'] = df[available_engagement].fillna(0).sum(axis=1)
+            top_engagement_post = df.nlargest(1, 'total_engagement').iloc[0]
+            
+            # Get the platform and engagement number
+            platform = top_engagement_post['source']
+            total_eng = int(top_engagement_post['total_engagement'])
+            pride_score = top_engagement_post['national_pride_pred']
+            
+            st.markdown(f"""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Engagement</h4>
+                    <p><strong>{platform}</strong></p>
+                    <p>{total_eng:,} interactions</p>
+                    <p>Pride: {pride_score}/3</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Fallback to highest pride post
+            top_pride_post = df.nlargest(1, 'national_pride_pred').iloc[0]
+            st.markdown(f"""
+            <div class="story-card">
+                <div>
+                    <h4>  Top Engagement</h4>
+                    <p><strong>{top_pride_post['source']}</strong></p>
+                    <p>High pride content</p>
+                    <p>Pride: {top_pride_post['national_pride_pred']}/3</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 
