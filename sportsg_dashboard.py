@@ -7,6 +7,8 @@ from collections import Counter
 import ast
 import warnings
 warnings.filterwarnings('ignore')
+from datetime import datetime, timedelta
+import pandas as pd
 
 # Configure Streamlit page
 st.set_page_config(
@@ -156,6 +158,20 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return None
     
+def filter_past_month(df):
+    """Filter dataframe to only include data from the past month"""
+    if df is None or len(df) == 0:
+        return df
+    
+    # Get current date and calculate one month ago
+    current_date = datetime.now()
+    one_month_ago = current_date - timedelta(days=30)
+    
+    # Filter the dataframe
+    past_month_df = df[df['date'] >= one_month_ago].copy()
+    
+    return past_month_df
+
 def find_inspirational_posts(df):
     """Find posts with inspirational keywords"""
     inspirational_keywords = [
@@ -230,19 +246,32 @@ def create_hero_section(df):
         """, unsafe_allow_html=True)
 
 def create_storytelling_insights(df):
-    """Create storytelling insights section with 4 key metrics cards"""
-    st.markdown('<div class="section-header">  Story Behind the Data</div>', unsafe_allow_html=True)
+    """Create storytelling insights section with 4 key metrics cards - Past Month Data"""
+    st.markdown('<div class="section-header">  Story Behind the Data (Past 30 Days)</div>', unsafe_allow_html=True)
+    
+    # Filter to past month data
+    past_month_df = filter_past_month(df)
     
     # Add inspirational content analysis
-    df = find_inspirational_posts(df)
+    past_month_df = find_inspirational_posts(past_month_df)
+    
+    # Show data period info
+    if len(past_month_df) > 0:
+        earliest_date = past_month_df['date'].min().strftime('%B %d, %Y')
+        latest_date = past_month_df['date'].max().strftime('%B %d, %Y')
+        st.info(f"  Showing data from {earliest_date} to {latest_date} ({len(past_month_df):,} posts)")
+    else:
+        st.warning("  No data available for the past 30 days. Showing all available data.")
+        past_month_df = df
+        past_month_df = find_inspirational_posts(past_month_df)
     
     # Create 4 columns for the new cards
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        # TOP SPORT CARD
+        # TOP SPORT CARD (Past Month)
         all_sports = []
-        for sports_list in df['sports_list']:
+        for sports_list in past_month_df['sports_list']:
             all_sports.extend(sports_list)
         
         if all_sports:
@@ -250,10 +279,10 @@ def create_storytelling_insights(df):
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>🏆 Top Sport</h4>
+                    <h4>  Top Sport</h4>
                     <p><strong>{top_sport[0]}</strong></p>
                     <p>{top_sport[1]:,} mentions</p>
-                    <p>Most discussed sport</p>
+                    <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -261,24 +290,24 @@ def create_storytelling_insights(df):
             st.markdown("""
             <div class="story-card">
                 <div>
-                    <h4>🏆 Top Sport</h4>
+                    <h4>  Top Sport</h4>
                     <p><strong>No data</strong></p>
                     <p>0 mentions</p>
-                    <p>Most discussed sport</p>
+                    <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     with col2:
-        # TOP ATHLETE CARD
+        # TOP ATHLETE CARD (Past Month)
         all_athletes = []
-        for athletes_list in df['athletes_list']:
+        for athletes_list in past_month_df['athletes_list']:
             all_athletes.extend(athletes_list)
         
         if all_athletes:
             top_athlete = Counter(all_athletes).most_common(1)[0]
-            # Get average pride for this athlete
-            athlete_posts = df[df['athletes_list'].apply(lambda x: top_athlete[0] in x)]
+            # Get average pride for this athlete in past month
+            athlete_posts = past_month_df[past_month_df['athletes_list'].apply(lambda x: top_athlete[0] in x)]
             avg_pride = athlete_posts['national_pride_pred'].mean() if len(athlete_posts) > 0 else 0
             
             st.markdown(f"""
@@ -287,7 +316,7 @@ def create_storytelling_insights(df):
                     <h4>  Top Athlete</h4>
                     <p><strong>{top_athlete[0]}</strong></p>
                     <p>{top_athlete[1]:,} mentions</p>
-                    <p>Avg Pride: {avg_pride:.1f}/3</p>
+                    <p>Pride: {avg_pride:.1f}/3</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -298,13 +327,13 @@ def create_storytelling_insights(df):
                     <h4>  Top Athlete</h4>
                     <p><strong>No data</strong></p>
                     <p>0 mentions</p>
-                    <p>Most mentioned athlete</p>
+                    <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     with col3:
-        # TOP TOPIC CARD (based on inspirational keywords)
+        # TOP TOPIC CARD (Past Month)
         inspirational_keywords = [
             'inspired', 'inspiring', 'motivation', 'motivated', 'good job', 'well done', 
             'excellent', 'amazing', 'fantastic', 'proud', 'pride', 'congratulations',
@@ -314,7 +343,7 @@ def create_storytelling_insights(df):
         
         keyword_counts = {}
         for keyword in inspirational_keywords:
-            count = df['content'].fillna('').str.contains(
+            count = past_month_df['content'].fillna('').str.contains(
                 f'\\b{keyword}\\b', case=False, regex=True, na=False
             ).sum()
             if count > 0:
@@ -328,7 +357,7 @@ def create_storytelling_insights(df):
                     <h4>  Top Topic</h4>
                     <p><strong>"{top_topic[0]}"</strong></p>
                     <p>{top_topic[1]:,} mentions</p>
-                    <p>Most used keyword</p>
+                    <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -339,48 +368,62 @@ def create_storytelling_insights(df):
                     <h4>  Top Topic</h4>
                     <p><strong>"pride"</strong></p>
                     <p>Popular topic</p>
-                    <p>Most discussed theme</p>
+                    <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     with col4:
-        # TOP ENGAGEMENT CARD
+        # TOP ENGAGEMENT CARD (Past Month)
         engagement_cols = ['no. of likes', 'no. of comments', 'no. of shares', 'no. of views']
-        available_engagement = [col for col in engagement_cols if col in df.columns and df[col].notna().sum() > 0]
+        available_engagement = [col for col in engagement_cols if col in past_month_df.columns and past_month_df[col].notna().sum() > 0]
         
         if available_engagement:
-            df['total_engagement'] = df[available_engagement].fillna(0).sum(axis=1)
-            top_engagement_post = df.nlargest(1, 'total_engagement').iloc[0]
+            past_month_df['total_engagement'] = past_month_df[available_engagement].fillna(0).sum(axis=1)
+            top_engagement_post = past_month_df.nlargest(1, 'total_engagement').iloc[0]
             
             # Get the platform and engagement number
             platform = top_engagement_post['source']
             total_eng = int(top_engagement_post['total_engagement'])
             pride_score = top_engagement_post['national_pride_pred']
+            post_date = top_engagement_post['date'].strftime('%m/%d')
             
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>  Top Engagement</h4>
+                    <h4>🚀 Top Engagement</h4>
                     <p><strong>{platform}</strong></p>
                     <p>{total_eng:,} interactions</p>
-                    <p>Pride: {pride_score}/3</p>
+                    <p>{post_date} | Pride: {pride_score}/3</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Fallback to highest pride post
-            top_pride_post = df.nlargest(1, 'national_pride_pred').iloc[0]
-            st.markdown(f"""
-            <div class="story-card">
-                <div>
-                    <h4>  Top Engagement</h4>
-                    <p><strong>{top_pride_post['source']}</strong></p>
-                    <p>High pride content</p>
-                    <p>Pride: {top_pride_post['national_pride_pred']}/3</p>
+            # Fallback to highest pride post in past month
+            if len(past_month_df) > 0:
+                top_pride_post = past_month_df.nlargest(1, 'national_pride_pred').iloc[0]
+                post_date = top_pride_post['date'].strftime('%m/%d')
+                st.markdown(f"""
+                <div class="story-card">
+                    <div>
+                        <h4>🚀 Top Engagement</h4>
+                        <p><strong>{top_pride_post['source']}</strong></p>
+                        <p>High pride content</p>
+                        <p>{post_date} | Pride: {top_pride_post['national_pride_pred']}/3</p>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="story-card">
+                    <div>
+                        <h4>🚀 Top Engagement</h4>
+                        <p><strong>No data</strong></p>
+                        <p>0 interactions</p>
+                        <p>Past 30 days</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
 
 
