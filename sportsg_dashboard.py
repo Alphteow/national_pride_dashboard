@@ -1269,7 +1269,7 @@ def main():
         create_text_examples_section(df)
         create_content_insights(df)
         create_advanced_analytics(df)
-        create_actionable_insights(df)
+        # create_actionable_insights(df)
         
         # ADD THE NEW TEXT PREDICTION SECTION
         create_text_prediction_section()
