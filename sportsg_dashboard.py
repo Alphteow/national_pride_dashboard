@@ -199,7 +199,7 @@ def create_hero_section(df):
     """Create an engaging hero section with key highlights"""
     st.markdown("""
     <div class="hero-section">
-        <h1>National Pride Analytics Dashboard</h1>
+        <h1>🏆 National Pride Analytics Dashboard</h1>
         <h3>Tracking Singapore's Sporting Journey & National Pride</h3>
         <p>Discover the stories behind the data that showcase Singapore's sporting achievements and community spirit</p>
     </div>
@@ -210,8 +210,14 @@ def create_hero_section(df):
     
     total_posts = len(df)
     high_pride_posts = (df['national_pride_pred'] >= 2).sum()
-    unique_sports = len([sport for sublist in df['sports_list'] for sport in sublist])
-    unique_athletes = len([athlete for sublist in df['athletes_list'] for athlete in sublist])
+    
+    # FIXED: Properly count unique sports by exploding the dataframe
+    df_sports_exploded = df.explode('sports_list')
+    unique_sports = df_sports_exploded['sports_list'].dropna().nunique()
+    
+    # FIXED: Properly count unique athletes by exploding the dataframe
+    df_athletes_exploded = df.explode('athletes_list')
+    unique_athletes = df_athletes_exploded['athletes_list'].dropna().nunique()
     
     with col1:
         st.markdown(f"""
@@ -233,7 +239,7 @@ def create_hero_section(df):
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-value">{unique_sports:,}</div>
-            <div class="metric-label">Sports Mentioned</div>
+            <div class="metric-label">Unique Sports Mentioned</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -241,7 +247,7 @@ def create_hero_section(df):
         st.markdown(f"""
         <div class="metric-card">
             <div class="metric-value">{unique_athletes:,}</div>
-            <div class="metric-label">Athletes Featured</div>
+            <div class="metric-label">Unique Athletes Featured</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -394,7 +400,7 @@ def create_storytelling_insights(df):
                     <h4>  Top Engagement</h4>
                     <p><strong>{platform}</strong></p>
                     <p>{total_eng:,} interactions</p>
-                    <p>{post_date} | Pride: {pride_score}/3</p>
+                    <p>Pride: {pride_score}/3</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
