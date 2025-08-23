@@ -961,7 +961,7 @@ def create_content_insights(df):
         st.markdown("""
         <div class="insight-box">
             <h4>Content Length Insights</h4>
-            <p>Higher pride posts tend to have more detailed content, suggesting that meaningful sporting achievements generate more comprehensive discussions.</p>
+            <p>Higher pride posts tend to have more detailed content, suggesting that meaningful sporting achievements generate more detailed discussions.</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -1030,7 +1030,7 @@ def create_text_prediction_section():
                 text-align: center;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
-              AI-Powered National Pride Predictor
+            🤖 AI-Powered National Pride Predictor
         </h2>
         <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
             Enter any text about Singapore sports and get an instant national pride score
@@ -1043,16 +1043,16 @@ def create_text_prediction_section():
     svm_model, scaler, tokenizer, embedding_model = load_trained_models()
     
     if svm_model is None:
-        st.error("  Could not load trained models. Please ensure the pkl files are in the 'pkl' folder.")
+        st.error("❌ Could not load trained models. Please ensure the pkl files are in the 'pkl' folder.")
         return
     
-    st.success("  AI Models loaded successfully!")
+    st.success("✅ AI Models loaded successfully!")
     
     # Create input section
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("###   Enter Your Text")
+        st.markdown("### 📝 Enter Your Text")
         
         # Text input
         user_text = st.text_area(
@@ -1063,9 +1063,9 @@ def create_text_prediction_section():
         )
         
         # Predict button
-        if st.button("  Predict National Pride Score", type="primary"):
+        if st.button("🔮 Predict National Pride Score", type="primary"):
             if user_text.strip():
-                with st.spinner("  Analyzing text..."):
+                with st.spinner("🤖 Analyzing text..."):
                     prediction, confidence = predict_national_pride(
                         user_text, svm_model, scaler, tokenizer, embedding_model
                     )
@@ -1077,10 +1077,15 @@ def create_text_prediction_section():
                         st.session_state.user_text = user_text
                         st.rerun()
             else:
-                st.warning("  Please enter some text to analyze.")
+                st.warning("⚠️ Please enter some text to analyze.")
     
     with col2:
-        st.markdown("###   Prediction Result")
+        st.markdown("### 📊 Prediction Result")
+        
+        # SCROLLABLE RESULT SECTION
+        st.markdown("""
+        <div style="height: 400px; overflow-y: auto; padding: 10px; border: 1px solid #374151; border-radius: 8px; background-color: #1F2937;">
+        """, unsafe_allow_html=True)
         
         # Display prediction if available
         if hasattr(st.session_state, 'prediction') and st.session_state.prediction is not None:
@@ -1104,7 +1109,8 @@ def create_text_prediction_section():
                         border-radius: 1rem; 
                         text-align: center; 
                         color: white;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        margin-bottom: 1rem;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">{pride_info['emoji']}</div>
                 <h3 style="margin-bottom: 0.5rem; color: white;">Score: {prediction}/3</h3>
                 <h4 style="margin-bottom: 1rem; color: white;">{pride_info['label']}</h4>
@@ -1113,7 +1119,7 @@ def create_text_prediction_section():
             """, unsafe_allow_html=True)
             
             # Show analysis
-            st.markdown("###   Analysis")
+            st.markdown("#### 🔍 Analysis")
             
             analysis_text = {
                 0: "This text shows neutral sentiment with no clear expressions of national pride or sporting achievement celebration.",
@@ -1138,7 +1144,7 @@ def create_text_prediction_section():
                     found_keywords.append(keyword)
             
             if found_keywords:
-                st.success(f"  **Inspirational keywords found:** {', '.join(found_keywords[:5])}")
+                st.success(f"🌟 **Inspirational keywords found:** {', '.join(found_keywords[:5])}")
         
         else:
             # Default display
@@ -1149,29 +1155,75 @@ def create_text_prediction_section():
                         text-align: center; 
                         color: #9CA3AF;
                         border: 2px dashed #6B7280;">
-                <div style="font-size: 2rem; margin-bottom: 1rem;"> </div>
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🤖</div>
                 <p>Enter text and click predict to see the national pride score</p>
             </div>
             """, unsafe_allow_html=True)
         
-        # Example texts
-        st.markdown("###   Try These Examples")
+        st.markdown("</div>", unsafe_allow_html=True)  # Close scrollable div
+        
+        # SCROLLABLE EXAMPLES SECTION
+        st.markdown("### 💡 Try These Examples")
+        
+        st.markdown("""
+        <div style="height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #374151; border-radius: 8px; background-color: #1F2937;">
+        """, unsafe_allow_html=True)
         
         examples = [
-            "Joseph Schooling won gold! So proud of Singapore!",
-            "Great badminton match today.",
-            "Singapore athletes are amazing and inspire us all!",
-            "The team lost the game."
+            {
+                "text": "Joseph Schooling won gold! So proud of Singapore!",
+                "description": "High pride example with celebration"
+            },
+            {
+                "text": "Great badminton match today.",
+                "description": "Neutral sports content"
+            },
+            {
+                "text": "Singapore athletes are amazing and inspire us all! Their dedication and hard work paid off with this incredible victory!",
+                "description": "Very high pride with inspirational language"
+            },
+            {
+                "text": "The team lost the game.",
+                "description": "Low pride example"
+            },
+            {
+                "text": "Congratulations to our swimmers! Outstanding performance at the SEA Games. Well done team Singapore!",
+                "description": "High pride with congratulatory tone"
+            },
+            {
+                "text": "Training session was okay.",
+                "description": "Neutral/low engagement"
+            },
+            {
+                "text": "What an incredible achievement! Our athletes have made Singapore proud with their perseverance and brilliant performance!",
+                "description": "Maximum pride with multiple keywords"
+            }
         ]
         
         for i, example in enumerate(examples):
-            if st.button(f"  Example {i+1}", key=f"example_{i}"):
-                st.session_state.example_text = example
+            # Create a container for each example
+            st.markdown(f"""
+            <div style="background: #374151; 
+                        padding: 1rem; 
+                        border-radius: 0.5rem; 
+                        margin-bottom: 0.5rem;
+                        border-left: 3px solid #3B82F6;">
+                <p style="color: #E5E7EB; margin-bottom: 0.5rem; font-weight: bold;">Example {i+1}</p>
+                <p style="color: #D1D5DB; margin-bottom: 0.5rem; font-style: italic;">"{example['text']}"</p>
+                <p style="color: #9CA3AF; font-size: 0.8rem; margin-bottom: 0.5rem;">{example['description']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button(f"📝 Use Example {i+1}", key=f"example_{i}"):
+                st.session_state.example_text = example['text']
                 st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)  # Close scrollable examples div
         
         # Load example text if selected
         if hasattr(st.session_state, 'example_text'):
             st.text_area("Selected example:", value=st.session_state.example_text, key="example_display", height=100)
+
 
 
 def main():
@@ -1192,7 +1244,7 @@ def main():
                     text-align: center;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <h2 style="color: #F9FAFB; margin-bottom: 1rem; font-size: 2.2rem;">
-                  Comprehensive Analytics Dashboard
+                  Analytics Dashboard
             </h2>
             <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
                 Detailed insights and visualizations based on complete dataset analysis
