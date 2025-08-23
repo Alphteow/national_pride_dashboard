@@ -331,7 +331,7 @@ def create_hero_section(df):
 
 def create_storytelling_insights(df):
     """Create storytelling insights section with 4 pride comparison cards - Past Month Data"""
-    st.markdown('<div class="section-header">  Pride Performance overview of the past 30 Days</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">  Pride Performance overview over the last 30 days</div>', unsafe_allow_html=True)
     
     # Filter to past month data
     past_month_df = filter_past_month(df)
