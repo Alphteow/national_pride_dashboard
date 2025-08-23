@@ -253,21 +253,11 @@ def create_hero_section(df):
 
 def create_storytelling_insights(df):
     """Create storytelling insights section with 4 pride comparison cards - Past Month Data"""
-    st.markdown('<div class="section-header">  Pride Performance Analysis (Past 30 Days)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">  Pride Performance of the past 30 Days</div>', unsafe_allow_html=True)
     
     # Filter to past month data
     past_month_df = filter_past_month(df)
     past_month_df = find_inspirational_posts(past_month_df)
-    
-    # Show data period info
-    if len(past_month_df) > 0:
-        earliest_date = past_month_df['date'].min().strftime('%B %d, %Y')
-        latest_date = past_month_df['date'].max().strftime('%B %d, %Y')
-        st.info(f"  Showing data from {earliest_date} to {latest_date} ({len(past_month_df):,} posts)")
-    else:
-        st.warning("  No data available for the past 30 days. Showing all available data.")
-        past_month_df = df
-        past_month_df = find_inspirational_posts(past_month_df)
     
     # Create 4 columns for the pride comparison cards
     col1, col2, col3, col4 = st.columns(4)
