@@ -343,7 +343,7 @@ def create_storytelling_insights(df):
         
         keyword_counts = {}
         for keyword in inspirational_keywords:
-            count = past_month_df['emotion'].fillna('').str.contains(
+            count = past_month_df['main emotion'].fillna('').str.contains(
                 f'\\b{keyword}\\b', case=False, regex=True, na=False
             ).sum()
             if count > 0:
