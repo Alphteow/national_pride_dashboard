@@ -199,7 +199,7 @@ def create_hero_section(df):
     """Create an engaging hero section with key highlights"""
     st.markdown("""
     <div class="hero-section">
-        <h1>🏆 National Pride Analytics Dashboard</h1>
+        <h1>  National Pride Analytics Dashboard</h1>
         <h3>Tracking Singapore's Sporting Journey & National Pride</h3>
         <p>Discover the stories behind the data that showcase Singapore's sporting achievements and community spirit</p>
     </div>
@@ -252,13 +252,11 @@ def create_hero_section(df):
         """, unsafe_allow_html=True)
 
 def create_storytelling_insights(df):
-    """Create storytelling insights section with 4 key metrics cards - Past Month Data"""
-    st.markdown('<div class="section-header">  Story Behind the Data (Past 30 Days)</div>', unsafe_allow_html=True)
+    """Create storytelling insights section with 4 pride comparison cards - Past Month Data"""
+    st.markdown('<div class="section-header">  Pride Performance Analysis (Past 30 Days)</div>', unsafe_allow_html=True)
     
     # Filter to past month data
     past_month_df = filter_past_month(df)
-    
-    # Add inspirational content analysis
     past_month_df = find_inspirational_posts(past_month_df)
     
     # Show data period info
@@ -271,58 +269,76 @@ def create_storytelling_insights(df):
         past_month_df = df
         past_month_df = find_inspirational_posts(past_month_df)
     
-    # Create 4 columns for the new cards
+    # Create 4 columns for the pride comparison cards
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        # TOP SPORT CARD (Past Month)
-        all_sports = []
-        for sports_list in past_month_df['sports_list']:
-            all_sports.extend(sports_list)
+        # SPORT WITH HIGHEST PRIDE
+        df_sports_exploded = past_month_df.explode('sports_list')
+        df_sports_exploded = df_sports_exploded[df_sports_exploded['sports_list'].notna()]
         
-        if all_sports:
-            top_sport = Counter(all_sports).most_common(1)[0]
-            st.markdown(f"""
-            <div class="story-card">
-                <div>
-                    <h4>  Top Sport</h4>
-                    <p><strong>{top_sport[0]}</strong></p>
-                    <p>{top_sport[1]:,} mentions</p>
-                    <p>Past 30 days</p>
+        if len(df_sports_exploded) > 0:
+            # Calculate average pride by sport (only sports with at least 3 mentions)
+            sport_pride_stats = df_sports_exploded.groupby('sports_list').agg({
+                'national_pride_pred': ['mean', 'count']
+            }).round(2)
+            sport_pride_stats.columns = ['avg_pride', 'mention_count']
+            
+            # Filter sports with at least 3 mentions for statistical significance
+            significant_sports = sport_pride_stats[sport_pride_stats['mention_count'] >= 3]
+            
+            if len(significant_sports) > 0:
+                highest_pride_sport = significant_sports['avg_pride'].idxmax()
+                highest_pride_score = significant_sports.loc[highest_pride_sport, 'avg_pride']
+                mention_count = int(significant_sports.loc[highest_pride_sport, 'mention_count'])
+                
+                st.markdown(f"""
+                <div class="story-card">
+                    <div>
+                        <h4>  Highest Pride Sport</h4>
+                        <p><strong>{highest_pride_sport}</strong></p>
+                        <p>Pride: {highest_pride_score:.2f}/3</p>
+                        <p>{mention_count} mentions</p>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="story-card">
+                    <div>
+                        <h4>  Highest Pride Sport</h4>
+                        <p><strong>Insufficient data</strong></p>
+                        <p>Need 3+ mentions</p>
+                        <p>Past 30 days</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div class="story-card">
                 <div>
-                    <h4>  Top Sport</h4>
+                    <h4>  Highest Pride Sport</h4>
                     <p><strong>No data</strong></p>
-                    <p>0 mentions</p>
+                    <p>0.0/3 pride</p>
                     <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     with col2:
-        # TOP ATHLETE CARD (Past Month)
-        all_athletes = []
-        for athletes_list in past_month_df['athletes_list']:
-            all_athletes.extend(athletes_list)
-        
-        if all_athletes:
-            top_athlete = Counter(all_athletes).most_common(1)[0]
-            # Get average pride for this athlete in past month
-            athlete_posts = past_month_df[past_month_df['athletes_list'].apply(lambda x: top_athlete[0] in x)]
-            avg_pride = athlete_posts['national_pride_pred'].mean() if len(athlete_posts) > 0 else 0
+        # SPORT WITH LOWEST PRIDE
+        if len(df_sports_exploded) > 0 and len(significant_sports) > 0:
+            lowest_pride_sport = significant_sports['avg_pride'].idxmin()
+            lowest_pride_score = significant_sports.loc[lowest_pride_sport, 'avg_pride']
+            mention_count = int(significant_sports.loc[lowest_pride_sport, 'mention_count'])
             
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>  Top Athlete</h4>
-                    <p><strong>{top_athlete[0]}</strong></p>
-                    <p>{top_athlete[1]:,} mentions</p>
-                    <p>Pride: {avg_pride:.1f}/3</p>
+                    <h4>  Lowest Pride Sport</h4>
+                    <p><strong>{lowest_pride_sport}</strong></p>
+                    <p>Pride: {lowest_pride_score:.2f}/3</p>
+                    <p>{mention_count} mentions</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -330,56 +346,41 @@ def create_storytelling_insights(df):
             st.markdown("""
             <div class="story-card">
                 <div>
-                    <h4>  Top Athlete</h4>
-                    <p><strong>No data</strong></p>
-                    <p>0 mentions</p>
+                    <h4>  Lowest Pride Sport</h4>
+                    <p><strong>Insufficient data</strong></p>
+                    <p>Need 3+ mentions</p>
                     <p>Past 30 days</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     with col3:
-        # TOP PRIDE SOURCE CARD (Past Month)
-        # Calculate average pride score by source for past month
-        source_pride_stats = past_month_df.groupby('source').agg({
-            'national_pride_pred': ['mean', 'count', 'sum']
-        }).round(2)
+        # ATHLETE WITH HIGHEST PRIDE
+        df_athletes_exploded = past_month_df.explode('athletes_list')
+        df_athletes_exploded = df_athletes_exploded[df_athletes_exploded['athletes_list'].notna()]
         
-        # Flatten column names
-        source_pride_stats.columns = ['avg_pride', 'post_count', 'total_pride']
-        
-        # Filter sources with at least 5 posts for statistical significance
-        significant_sources = source_pride_stats[source_pride_stats['post_count'] >= 5]
-        
-        if len(significant_sources) > 0:
-            # Get the source with highest average pride
-            top_pride_source = significant_sources['avg_pride'].idxmax()
-            top_avg_pride = significant_sources.loc[top_pride_source, 'avg_pride']
-            source_post_count = int(significant_sources.loc[top_pride_source, 'post_count'])
+        if len(df_athletes_exploded) > 0:
+            # Calculate average pride by athlete (only athletes with at least 2 mentions)
+            athlete_pride_stats = df_athletes_exploded.groupby('athletes_list').agg({
+                'national_pride_pred': ['mean', 'count']
+            }).round(2)
+            athlete_pride_stats.columns = ['avg_pride', 'mention_count']
             
-            st.markdown(f"""
-            <div class="story-card">
-                <div>
-                    <h4>  Top Pride Source</h4>
-                    <p><strong>{top_pride_source}</strong></p>
-                    <p>Avg Pride: {top_avg_pride:.2f}/3</p>
-                    <p>{source_post_count} posts analyzed</p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            # Fallback for when no source has enough posts
-            all_sources = past_month_df.groupby('source')['national_pride_pred'].mean()
-            if len(all_sources) > 0:
-                top_source = all_sources.idxmax()
-                top_pride = all_sources.max()
+            # Filter athletes with at least 2 mentions
+            significant_athletes = athlete_pride_stats[athlete_pride_stats['mention_count'] >= 2]
+            
+            if len(significant_athletes) > 0:
+                highest_pride_athlete = significant_athletes['avg_pride'].idxmax()
+                highest_pride_score = significant_athletes.loc[highest_pride_athlete, 'avg_pride']
+                mention_count = int(significant_athletes.loc[highest_pride_athlete, 'mention_count'])
+                
                 st.markdown(f"""
                 <div class="story-card">
                     <div>
-                        <h4>  Top Pride Source</h4>
-                        <p><strong>{top_source}</strong></p>
-                        <p>Avg Pride: {top_pride:.2f}/3</p>
-                        <p>Past 30 days</p>
+                        <h4>  Highest Pride Athlete</h4>
+                        <p><strong>{highest_pride_athlete}</strong></p>
+                        <p>Pride: {highest_pride_score:.2f}/3</p>
+                        <p>{mention_count} mentions</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -387,66 +388,53 @@ def create_storytelling_insights(df):
                 st.markdown("""
                 <div class="story-card">
                     <div>
-                        <h4>  Top Pride Source</h4>
-                        <p><strong>No data</strong></p>
-                        <p>0.0/3 avg pride</p>
+                        <h4>  Highest Pride Athlete</h4>
+                        <p><strong>Insufficient data</strong></p>
+                        <p>Need 2+ mentions</p>
                         <p>Past 30 days</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
+        else:
+            st.markdown("""
+            <div class="story-card">
+                <div>
+                    <h4>  Highest Pride Athlete</h4>
+                    <p><strong>No data</strong></p>
+                    <p>0.0/3 pride</p>
+                    <p>Past 30 days</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     
     with col4:
-        # TOP ENGAGEMENT CARD (Past Month)
-        engagement_cols = ['no. of likes', 'no. of comments', 'no. of shares', 'no. of views']
-        available_engagement = [col for col in engagement_cols if col in past_month_df.columns and past_month_df[col].notna().sum() > 0]
-        
-        if available_engagement:
-            past_month_df['total_engagement'] = past_month_df[available_engagement].fillna(0).sum(axis=1)
-            top_engagement_post = past_month_df.nlargest(1, 'total_engagement').iloc[0]
-            
-            # Get the platform and engagement number
-            platform = top_engagement_post['source']
-            total_eng = int(top_engagement_post['total_engagement'])
-            pride_score = top_engagement_post['national_pride_pred']
-            post_date = top_engagement_post['date'].strftime('%m/%d')
+        # ATHLETE WITH LOWEST PRIDE
+        if len(df_athletes_exploded) > 0 and len(significant_athletes) > 0:
+            lowest_pride_athlete = significant_athletes['avg_pride'].idxmin()
+            lowest_pride_score = significant_athletes.loc[lowest_pride_athlete, 'avg_pride']
+            mention_count = int(significant_athletes.loc[lowest_pride_athlete, 'mention_count'])
             
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>  Top Engagement</h4>
-                    <p><strong>{platform}</strong></p>
-                    <p>{total_eng:,} interactions</p>
-                    <p>Pride: {pride_score}/3</p>
+                    <h4>  Lowest Pride Athlete</h4>
+                    <p><strong>{lowest_pride_athlete}</strong></p>
+                    <p>Pride: {lowest_pride_score:.2f}/3</p>
+                    <p>{mention_count} mentions</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Fallback to highest pride post in past month
-            if len(past_month_df) > 0:
-                top_pride_post = past_month_df.nlargest(1, 'national_pride_pred').iloc[0]
-                post_date = top_pride_post['date'].strftime('%m/%d')
-                st.markdown(f"""
-                <div class="story-card">
-                    <div>
-                        <h4>  Top Engagement</h4>
-                        <p><strong>{top_pride_post['source']}</strong></p>
-                        <p>High pride content</p>
-                        <p>Pride: {top_pride_post['national_pride_pred']}/3</p>
-                    </div>
+            st.markdown("""
+            <div class="story-card">
+                <div>
+                    <h4>  Lowest Pride Athlete</h4>
+                    <p><strong>Insufficient data</strong></p>
+                    <p>Need 2+ mentions</p>
+                    <p>Past 30 days</p>
                 </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div class="story-card">
-                    <div>
-                        <h4>  Top Engagement</h4>
-                        <p><strong>No data</strong></p>
-                        <p>0 interactions</p>
-                        <p>Past 30 days</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """, unsafe_allow_html=True)
 
 
 
