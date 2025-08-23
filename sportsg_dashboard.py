@@ -963,7 +963,7 @@ def main():
                   Analytics Dashboard
             </h2>
             <p style="color: #D1D5DB; font-size: 1.1rem; margin-bottom: 0;">
-                Detailed insights and visualizations based on complete dataset analysis
+                Insights and visualizations based on complete dataset analysis
             </p>
             <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #10B981, #3B82F6); margin: 1rem auto 0 auto;"></div>
         </div>
@@ -975,7 +975,6 @@ def main():
         create_text_examples_section(df)
         create_content_insights(df)
         create_advanced_analytics(df)
-        create_actionable_insights(df)
         
         # Footer
         st.markdown("---")
