@@ -339,45 +339,62 @@ def create_storytelling_insights(df):
             """, unsafe_allow_html=True)
     
     with col3:
-        # TOP TOPIC CARD (Past Month)
-        inspirational_keywords = [
-            'inspired', 'inspiring', 'motivation', 'motivated', 'good job', 'well done', 
-            'excellent', 'amazing', 'fantastic', 'proud', 'pride', 'congratulations',
-            'outstanding', 'incredible', 'awesome', 'brilliant', 'champion', 'victory',
-            'achievement', 'success', 'dedication', 'perseverance'
-        ]
+        # TOP PRIDE SOURCE CARD (Past Month)
+        # Calculate average pride score by source for past month
+        source_pride_stats = past_month_df.groupby('source').agg({
+            'national_pride_pred': ['mean', 'count', 'sum']
+        }).round(2)
         
-        keyword_counts = {}
-        for keyword in inspirational_keywords:
-            count = past_month_df['title'].fillna('').str.contains(
-                f'\\b{keyword}\\b', case=False, regex=True, na=False
-            ).sum()
-            if count > 0:
-                keyword_counts[keyword] = count
+        # Flatten column names
+        source_pride_stats.columns = ['avg_pride', 'post_count', 'total_pride']
         
-        if keyword_counts:
-            top_topic = max(keyword_counts.items(), key=lambda x: x[1])
+        # Filter sources with at least 5 posts for statistical significance
+        significant_sources = source_pride_stats[source_pride_stats['post_count'] >= 5]
+        
+        if len(significant_sources) > 0:
+            # Get the source with highest average pride
+            top_pride_source = significant_sources['avg_pride'].idxmax()
+            top_avg_pride = significant_sources.loc[top_pride_source, 'avg_pride']
+            source_post_count = int(significant_sources.loc[top_pride_source, 'post_count'])
+            
             st.markdown(f"""
             <div class="story-card">
                 <div>
-                    <h4>  Top Topic</h4>
-                    <p><strong>"{top_topic[0]}"</strong></p>
-                    <p>{top_topic[1]:,} mentions</p>
-                    <p>Past 30 days</p>
+                    <h4>  Top Pride Source</h4>
+                    <p><strong>{top_pride_source}</strong></p>
+                    <p>Avg Pride: {top_avg_pride:.2f}/3</p>
+                    <p>{source_post_count} posts analyzed</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown("""
-            <div class="story-card">
-                <div>
-                    <h4>  Top Topic</h4>
-                    <p><strong>"pride"</strong></p>
-                    <p>Popular topic</p>
-                    <p>Past 30 days</p>
+            # Fallback for when no source has enough posts
+            all_sources = past_month_df.groupby('source')['national_pride_pred'].mean()
+            if len(all_sources) > 0:
+                top_source = all_sources.idxmax()
+                top_pride = all_sources.max()
+                st.markdown(f"""
+                <div class="story-card">
+                    <div>
+                        <h4>  Top Pride Source</h4>
+                        <p><strong>{top_source}</strong></p>
+                        <p>Avg Pride: {top_pride:.2f}/3</p>
+                        <p>Past 30 days</p>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="story-card">
+                    <div>
+                        <h4>  Top Pride Source</h4>
+                        <p><strong>No data</strong></p>
+                        <p>0.0/3 avg pride</p>
+                        <p>Past 30 days</p>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
     
     with col4:
         # TOP ENGAGEMENT CARD (Past Month)
