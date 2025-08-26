@@ -20,7 +20,7 @@ def load_trained_models():
     """Load the trained SVM model and scaler from pkl folder"""
     try:
         # Load the trained models
-        svm_model = joblib.load('pkl/national_pride_svm.pkl')
+        svm_model = joblib.load('pkl/national_pride_svm (2).pkl')
         scaler = joblib.load('pkl/embeddings_scaler.pkl')
         
         # Load the tokenizer and embedding model
